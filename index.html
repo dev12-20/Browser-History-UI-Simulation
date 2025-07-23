@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Browser History Simulation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    input, button, select {
+      padding: 8px;
+      margin: 4px;
+    }
+    button:disabled {
+      opacity: 0.5;
+    }
+    .current-page {
+      background-color: #f0f0f0;
+      padding: 10px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    .highlight {
+      color: blue;
+      font-weight: bold;
+    }
+    .timestamp {
+      color: gray;
+      font-size: 0.9em;
+    }
+    .button-row {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🧭 Browser History UI Simulation</h2>
+
+  <input type="text" id="urlInput" placeholder="Enter URL (e.g. https://example.com)" size="40" />
+  <button onclick="visit()">Visit</button>
+
+  <div class="button-row">
+    <button onclick="goBack()" id="backBtn">Back</button>
+    <button onclick="goForward()" id="forwardBtn">Forward</button>
+    <button onclick="clearHistory()" id="clearBtn">🗑️ Clear History</button>
+  </div>
+
+  <div class="current-page" id="currentPage">Current Page: None</div>
+
+  <h3>
+    📜 History (Most Recent First) — 
+    <label for="displayCount">Show:</label>
+    <select id="displayCount" onchange="updateUI()">
+      <option value="3">Last 3</option>
+      <option value="5" selected>Last 5</option>
+      <option value="10">Last 10</option>
+      <option value="all">All</option>
+    </select>
+  </h3>
+  <ul id="historyList"></ul>
+
+  <script>
+    let history = [];
+    let currentIndex = -1;
+
+    const urlInput = document.getElementById("urlInput");
+    const currentPage = document.getElementById("currentPage");
+    const historyList = document.getElementById("historyList");
+    const backBtn = document.getElementById("backBtn");
+    const forwardBtn = document.getElementById("forwardBtn");
+    const displayCountSelect = document.getElementById("displayCount");
+
+    function formatTime(date) {
+      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    }
+
+    function updateUI() {
+      // Update current page
+      currentPage.textContent = currentIndex >= 0 ? 
+        `Current Page: ${history[currentIndex].url}` : "Current Page: None";
+
+      // Get how many to display
+      const countValue = displayCountSelect.value;
+      const maxItems = countValue === "all" ? history.length : parseInt(countValue);
+
+      // Display limited history (most recent first)
+      historyList.innerHTML = "";
+      let displayed = 0;
+      for (let i = history.length - 1; i >= 0 && displayed < maxItems; i--) {
+        const item = history[i];
+        const li = document.createElement("li");
+        li.innerHTML = `${item.url} <div class="timestamp">${item.timestamp}</div>`;
+        if (i === currentIndex) li.classList.add("highlight");
+        historyList.appendChild(li);
+        displayed++;
+      }
+
+      // Enable/disable nav buttons
+      backBtn.disabled = currentIndex <= 0;
+      forwardBtn.disabled = currentIndex >= history.length - 1;
+    }
+
+   function visit() {
+  let url = urlInput.value.trim().toLowerCase(); // 🔽 Lowercase here
+  if (!url) return;
+
+  // Remove forward history
+  history = history.slice(0, currentIndex + 1);
+
+  // Add new entry
+  history.push({
+    url: url,
+    timestamp: formatTime(new Date())
+  });
+  currentIndex++;
+  urlInput.value = "";
+  updateUI();
+}
+
+
+    function goBack() {
+      if (currentIndex > 0) currentIndex--;
+      updateUI();
+    }
+
+    function goForward() {
+      if (currentIndex < history.length - 1) currentIndex++;
+      updateUI();
+    }
+
+    function clearHistory() {
+      history = [];
+      currentIndex = -1;
+      updateUI();
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
